@@ -1,0 +1,98 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release tag, e.g. v0.1.0"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+    env:
+      PYTHON_VERSION: "3.12"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Resolve release version
+        id: meta
+        shell: pwsh
+        run: |
+          if ("${{ github.event_name }}" -eq "workflow_dispatch") {
+            $version = "${{ github.event.inputs.version }}"
+          } else {
+            $version = "${{ github.ref_name }}"
+          }
+          if (-not $version) {
+            throw "Release version is empty"
+          }
+          if (-not $version.StartsWith("v")) {
+            throw "Release version must start with 'v', got: $version"
+          }
+          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+      - name: Ensure tag exists for manual run
+        if: github.event_name == 'workflow_dispatch'
+        shell: pwsh
+        run: |
+          $version = "${{ steps.meta.outputs.version }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          $exists = git tag --list $version
+          if (-not $exists) {
+            git tag $version
+            git push origin $version
+          }
+
+      - name: Install build dependencies
+        shell: pwsh
+        run: |
+          python -m pip install -U pip
+          python -m pip install -e . pyinstaller
+          python -m playwright install chromium
+
+      - name: Build executable
+        shell: pwsh
+        run: |
+          pyinstaller --noconfirm --clean --onefile --name SiriusToolbox --add-data "src/sirius_toolbox;src/sirius_toolbox" main.py
+
+      - name: Package release artifacts
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path release | Out-Null
+          Copy-Item dist/SiriusToolbox.exe release/SiriusToolbox.exe -Force
+          Compress-Archive -Path release/SiriusToolbox.exe -DestinationPath release/SiriusToolbox-${{ steps.meta.outputs.version }}-windows-x64.zip -Force
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SiriusToolbox-${{ steps.meta.outputs.version }}-windows-x64
+          path: |
+            release/SiriusToolbox.exe
+            release/SiriusToolbox-${{ steps.meta.outputs.version }}-windows-x64.zip
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.meta.outputs.version }}
+          generate_release_notes: true
+          files: |
+            release/SiriusToolbox.exe
+            release/SiriusToolbox-${{ steps.meta.outputs.version }}-windows-x64.zip

@@ -1,0 +1,1 @@
+"""Xiaohongshu browser collector plugin."""
