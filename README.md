@@ -41,15 +41,16 @@ powershell -ExecutionPolicy Bypass -File .\scripts\bootstrap-webui.ps1
 从 GitHub Release 下载 `SiriusToolbox-vX.Y.Z-windows-x64.zip` 后，解压目录内包含：
 
 - `SiriusToolbox.exe`
-- `start-webui.bat`
 
-双击 `start-webui.bat` 即可一键启动 EXE。
+双击 `SiriusToolbox.exe` 即可启动。
 
 EXE 启动前会执行运行时预检：
 
 1. 检查关键 Python 运行时依赖是否可用
 2. 检查 Playwright Chromium 内核是否就绪
 3. 若检测到内核缺失且允许自动修复，则尝试自动安装后再启动主体
+
+说明：EXE 模式会将 Chromium 运行时安装到用户持久目录（`%LOCALAPPDATA%\\ms-playwright`），避免写入临时 `_MEI` 目录导致重启后丢失。
 
 ## 推荐开发顺序
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -22,7 +23,21 @@ def _missing_modules() -> list[str]:
     return [name for name in REQUIRED_MODULES if importlib.util.find_spec(name) is None]
 
 
+def _ensure_playwright_browser_path() -> None:
+    if os.getenv("PLAYWRIGHT_BROWSERS_PATH"):
+        return
+
+    local_app_data = os.getenv("LOCALAPPDATA")
+    if local_app_data:
+        os.environ["PLAYWRIGHT_BROWSERS_PATH"] = str(Path(local_app_data) / "ms-playwright")
+        return
+
+    os.environ["PLAYWRIGHT_BROWSERS_PATH"] = str(Path.home() / ".cache" / "ms-playwright")
+
+
 def _chromium_ready() -> tuple[bool, str]:
+    _ensure_playwright_browser_path()
+
     try:
         from playwright.sync_api import sync_playwright
     except Exception as exc:  # noqa: BLE001
@@ -39,6 +54,24 @@ def _chromium_ready() -> tuple[bool, str]:
 
 
 def _install_chromium() -> bool:
+    _ensure_playwright_browser_path()
+
+    try:
+        import playwright.__main__ as playwright_main
+
+        argv_backup = sys.argv[:]
+        try:
+            sys.argv = ["playwright", "install", "chromium"]
+            playwright_main.main()
+            return True
+        except SystemExit as exc:
+            if int(getattr(exc, "code", 1) or 0) == 0:
+                return True
+        finally:
+            sys.argv = argv_backup
+    except Exception:  # noqa: BLE001
+        pass
+
     commands: list[list[str]] = []
 
     if not getattr(sys, "frozen", False):

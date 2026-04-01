@@ -2,6 +2,8 @@
 
 ## 2026-04-01
 
+- fix(runtime): install chromium to persistent browser path for exe mode and avoid temporary _MEI browser lookup failure
+- build(release): stop publishing start-webui.bat in release assets and package only exe artifacts
 - feat(runtime): embed startup preflight into app entry to validate dependencies and Chromium before launching app body
 - fix(bootstrap): detect missing Python packages before startup and install only when needed
 - build(release): include one-click `start-webui.bat` in release assets and zip package

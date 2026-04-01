@@ -68,7 +68,7 @@ py -3.12 -m venv .venv; .\.venv\Scripts\python -m pip install -U pip; .\.venv\Sc
 
 Release 发布产物要求：
 - 附件至少包含：`SiriusToolbox.exe`、`SiriusToolbox-<version>-windows-x64.zip`
-- zip 内必须包含可双击启动的 `start-webui.bat`，用于直接启动 `SiriusToolbox.exe`
+- zip 内至少包含 `SiriusToolbox.exe`
 
 ## 失败排查
 1. `No module named ...`
