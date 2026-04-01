@@ -45,6 +45,12 @@ powershell -ExecutionPolicy Bypass -File .\scripts\bootstrap-webui.ps1
 
 双击 `start-webui.bat` 即可一键启动 EXE。
 
+EXE 启动前会执行运行时预检：
+
+1. 检查关键 Python 运行时依赖是否可用
+2. 检查 Playwright Chromium 内核是否就绪
+3. 若检测到内核缺失且允许自动修复，则尝试自动安装后再启动主体
+
 ## 推荐开发顺序
 
 1. 搭建 core/tasks/storage 基础骨架

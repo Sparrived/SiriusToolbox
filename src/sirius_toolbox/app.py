@@ -3,6 +3,7 @@ from pathlib import Path
 
 from sirius_toolbox.core.types import SourceProvider
 from sirius_toolbox.core.logging import build_logger
+from sirius_toolbox.core.runtime_preflight import ensure_runtime_ready
 from sirius_toolbox.exporters.social_report import export_social_records
 from sirius_toolbox.settings import Settings
 from sirius_toolbox.storage.jsonl_store import JsonlStore
@@ -96,6 +97,12 @@ def run(argv: list[str] | None = None) -> None:
     logger = build_logger(settings.log_level)
     parser = _build_parser()
     args = parser.parse_args(argv)
+
+    # Preflight gate keeps startup deterministic for both source run and packaged EXE.
+    if args.command in {"webui", "xhs"}:
+        ensure_runtime_ready(settings=settings, require_chromium=True)
+    elif args.command == "poi":
+        ensure_runtime_ready(settings=settings, require_chromium=False)
 
     if args.command == "webui":
         start_webui(settings=settings, logger=logger, host=args.host, port=args.port)
