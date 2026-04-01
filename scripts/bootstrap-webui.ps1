@@ -74,6 +74,40 @@ function Install-Python312 {
     }
 }
 
+function Test-DependenciesReady {
+    param([string]$PythonPath)
+
+    $probe = @'
+import importlib.util
+import sys
+
+required = [
+    "httpx",
+    "openpyxl",
+    "PIL",
+    "playwright",
+    "pydantic",
+    "pytest",
+    "tenacity",
+    "sirius_toolbox",
+]
+
+missing = [name for name in required if importlib.util.find_spec(name) is None]
+if missing:
+    print("|".join(missing))
+    raise SystemExit(1)
+
+raise SystemExit(0)
+'@
+
+    $output = $probe | & $PythonPath -
+    if ($LASTEXITCODE -eq 0) {
+        return @{ Ready = $true; Missing = "" }
+    }
+
+    return @{ Ready = $false; Missing = ($output -join "").Trim() }
+}
+
 $repoRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
 Set-Location $repoRoot
 
@@ -113,10 +147,19 @@ if ($LASTEXITCODE -ne 0) {
     throw "Failed to upgrade pip."
 }
 
-Write-Step "Installing project dependencies..."
-& $venvPython -m pip install -e .
-if ($LASTEXITCODE -ne 0) {
-    throw "Failed to install project dependencies."
+$deps = Test-DependenciesReady -PythonPath $venvPython
+if ($deps.Ready) {
+    Write-Step "Dependencies already installed. Skipping pip install."
+}
+else {
+    if ($deps.Missing) {
+        Write-Step "Missing dependencies detected: $($deps.Missing)"
+    }
+    Write-Step "Installing project dependencies..."
+    & $venvPython -m pip install -e .
+    if ($LASTEXITCODE -ne 0) {
+        throw "Failed to install project dependencies."
+    }
 }
 
 if (-not $SkipPlaywrightInstall) {

@@ -20,7 +20,7 @@ SiriusToolbox 是一个面向数据采集场景的工具箱项目，当前规划
 
 1. 检测 Python 3.12，若缺失则尝试通过 `winget` 自动安装
 2. 创建 `.venv` 虚拟环境
-3. 安装项目依赖（`pip install -e .`）
+3. 检测项目依赖，缺失时自动安装（`pip install -e .`）
 4. 安装 Playwright Chromium 运行时
 5. 启动 WebUI（默认 `http://127.0.0.1:8787`）
 
