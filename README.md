@@ -10,6 +10,41 @@ SiriusToolbox 是一个面向数据采集场景的工具箱项目，当前规划
 - 架构设计文档：docs/architecture.md
 - 项目技能文档（供 Copilot 协作理解项目边界）：.github/skills/sirius-toolbox-architecture/SKILL.md
 
+## 全新 Windows 机器一键启动
+
+如果电脑是全新环境（未安装 Python、未安装依赖），可在仓库根目录直接双击：
+
+- `start-webui.bat`
+
+该脚本会自动执行以下步骤：
+
+1. 检测 Python 3.12，若缺失则尝试通过 `winget` 自动安装
+2. 创建 `.venv` 虚拟环境
+3. 安装项目依赖（`pip install -e .`）
+4. 安装 Playwright Chromium 运行时
+5. 启动 WebUI（默认 `http://127.0.0.1:8787`）
+
+也可以在 PowerShell 手动执行：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\bootstrap-webui.ps1
+```
+
+可选参数：
+
+- `-SetupOnly`：只初始化环境，不启动 WebUI
+- `-SkipPlaywrightInstall`：跳过 Chromium 安装
+- `-BindHost 0.0.0.0 -Port 8787`：自定义监听地址与端口
+
+## Release 压缩包一键启动
+
+从 GitHub Release 下载 `SiriusToolbox-vX.Y.Z-windows-x64.zip` 后，解压目录内包含：
+
+- `SiriusToolbox.exe`
+- `start-webui.bat`
+
+双击 `start-webui.bat` 即可一键启动 EXE。
+
 ## 推荐开发顺序
 
 1. 搭建 core/tasks/storage 基础骨架
@@ -58,9 +93,9 @@ python main.py xhs --keyword 护肤 --max-items 5 --debug
 导出能力：
 
 - `export-social` 会按任务独立导出（每个任务一个目录）：
-	- `data/exports/<task_id>/social_posts.xlsx`（Excel，方便筛选和查看文本字段）
-	- `data/exports/<task_id>/social_posts.html`（图文卡片报告，方便直接浏览图片和正文）
-	- `data/exports/<task_id>/images/`（自动下载的图片文件）
+  - `data/exports/<task_id>/social_posts.xlsx`（Excel，方便筛选和查看文本字段）
+  - `data/exports/<task_id>/social_posts.html`（图文卡片报告，方便直接浏览图片和正文）
+  - `data/exports/<task_id>/images/`（自动下载的图片文件）
 - 下载图片会统一转换为 `.jpg` 格式，便于在常见工具中打开与分发。
 
 可选参数：

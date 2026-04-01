@@ -20,7 +20,7 @@ from sirius_toolbox.tasks.handlers import handle_poi_task, handle_social_task
 from sirius_toolbox.tasks.models import PoiCollectTask, SocialCollectTask
 
 
-WEBUI_VERSION = "2026.03.30.22"
+WEBUI_VERSION = "2026.04.01.02"
 
 
 @dataclass(slots=True)
